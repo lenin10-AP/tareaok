@@ -1,5 +1,5 @@
 import streamlit as st
-from scipy.optimize import linprog
+from pulp import LpMaximize, LpMinimize, LpProblem, LpVariable, lpSum, LpStatus
 
 st.title("Resolución de Ejercicios de Programación Lineal y Entera con Streamlit")
 
@@ -16,25 +16,25 @@ x_1, x_2, x_3 &\geq 0, \text{ enteros}
 """)
 
 if st.button("Resolver Ejercicio 8.1"):
-    # Coeficientes de la función objetivo (Maximización)
-    c_8_1 = [-4, -3, -3]
+    # Definir el problema
+    prob_8_1 = LpProblem("Ejercicio_8_1", LpMaximize)
+    x1 = LpVariable("x1", lowBound=0, cat="Integer")
+    x2 = LpVariable("x2", lowBound=0, cat="Integer")
+    x3 = LpVariable("x3", lowBound=0, cat="Integer")
 
-    # Coeficientes de las restricciones
-    A_8_1 = [
-        [4, 2, 1],
-        [3, 4, 2],
-        [2, 1, 3]
-    ]
-    b_8_1 = [10, 14, 7]
+    # Función objetivo
+    prob_8_1 += 4 * x1 + 3 * x2 + 3 * x3
 
-    # Resolver la versión relajada del problema
-    result_8_1 = linprog(c_8_1, A_ub=A_8_1, b_ub=b_8_1, bounds=(0, None), method="highs")
-    x_relaxed = result_8_1.x
-    P_relaxed = -result_8_1.fun
+    # Restricciones
+    prob_8_1 += 4 * x1 + 2 * x2 + x3 <= 10
+    prob_8_1 += 3 * x1 + 4 * x2 + 2 * x3 <= 14
+    prob_8_1 += 2 * x1 + x2 + 3 * x3 <= 7
 
-    st.write("*Solución relajada:*")
-    st.write(f"x1 = {x_relaxed[0]:.2f}, x2 = {x_relaxed[1]:.2f}, x3 = {x_relaxed[2]:.2f}")
-    st.write(f"Valor de la función objetivo: P = {P_relaxed:.2f}")
+    # Resolver el problema
+    prob_8_1.solve()
+    st.write("*Solución:*")
+    st.write(f"x1 = {x1.varValue}, x2 = {x2.varValue}, x3 = {x3.varValue}")
+    st.write(f"Valor de la función objetivo: P = {prob_8_1.objective.value()}")
 
 # --- Ejercicio 8.2 ---
 st.header("Ejercicio 8.2: Resolución como un Problema de Programación Entera")
@@ -49,25 +49,25 @@ x_1, x_2, x_3 &\geq 0, \text{ enteros}
 """)
 
 if st.button("Resolver Ejercicio 8.2"):
-    # Coeficientes de la función objetivo (Maximización)
-    c_8_2 = [-4, -3, -3]  # Definir `c_8_2` de nuevo para el ejercicio 8.2
+    # Definir el problema
+    prob_8_2 = LpProblem("Ejercicio_8_2", LpMaximize)
+    x1 = LpVariable("x1", lowBound=0, cat="Integer")
+    x2 = LpVariable("x2", lowBound=0, cat="Integer")
+    x3 = LpVariable("x3", lowBound=0, cat="Integer")
 
-    # Coeficientes de las restricciones
-    A_8_2 = [
-        [4, 2, 1],
-        [3, 4, 2],
-        [2, 1, 3]
-    ]
-    b_8_2 = [10, 14, 7]
+    # Función objetivo
+    prob_8_2 += 4 * x1 + 3 * x2 + 3 * x3
 
-    # Resolver la versión relajada del problema como programación entera
-    result_8_2 = linprog(c_8_2, A_ub=A_8_2, b_ub=b_8_2, bounds=(0, None), method="highs")
-    x_int = result_8_2.x
-    P_int = -result_8_2.fun
+    # Restricciones
+    prob_8_2 += 4 * x1 + 2 * x2 + x3 <= 10
+    prob_8_2 += 3 * x1 + 4 * x2 + 2 * x3 <= 14
+    prob_8_2 += 2 * x1 + x2 + 3 * x3 <= 7
 
-    st.write("*Solución del problema de programación entera (relajado):*")
-    st.write(f"x1 = {x_int[0]:.2f}, x2 = {x_int[1]:.2f}, x3 = {x_int[2]:.2f}")
-    st.write(f"Valor de la función objetivo: P = {P_int:.2f}")
+    # Resolver el problema
+    prob_8_2.solve()
+    st.write("*Solución del problema de programación entera:*")
+    st.write(f"x1 = {x1.varValue}, x2 = {x2.varValue}, x3 = {x3.varValue}")
+    st.write(f"Valor de la función objetivo: P = {prob_8_2.objective.value()}")
 
 # --- Ejercicio 8.3 ---
 st.header("Ejercicio 8.3: Método de Cortes de Gomory")
@@ -81,24 +81,23 @@ x, y &\geq 0, \text{ enteros}
 """)
 
 if st.button("Resolver Ejercicio 8.3"):
-    # Coeficientes de la función objetivo para el ejercicio 8.3 (Minimización)
-    c_8_3 = [1, -1]
+    # Definir el problema
+    prob_8_3 = LpProblem("Ejercicio_8_3", LpMinimize)
+    x = LpVariable("x", lowBound=0, cat="Integer")
+    y = LpVariable("y", lowBound=0, cat="Integer")
 
-    # Coeficientes de las restricciones
-    A_8_3 = [
-        [3, 4],
-        [1, -1]
-    ]
-    b_8_3 = [6, 1]
+    # Función objetivo
+    prob_8_3 += x - y
 
-    # Resolver la versión relajada del problema
-    result_8_3 = linprog(c_8_3, A_ub=A_8_3, b_ub=b_8_3, bounds=(0, None), method="highs")
-    x_relaxed_8_3 = result_8_3.x
-    C_relaxed_8_3 = result_8_3.fun
+    # Restricciones
+    prob_8_3 += 3 * x + 4 * y <= 6
+    prob_8_3 += x - y <= 1
 
+    # Resolver el problema
+    prob_8_3.solve()
     st.write("*Solución relajada:*")
-    st.write(f"x = {x_relaxed_8_3[0]:.2f}, y = {x_relaxed_8_3[1]:.2f}")
-    st.write(f"Valor de la función objetivo: C = {C_relaxed_8_3:.2f}")
+    st.write(f"x = {x.varValue}, y = {y.varValue}")
+    st.write(f"Valor de la función objetivo: C = {prob_8_3.objective.value()}")
 
 # --- Ejercicio 8.4 ---
 st.header("Ejercicio 8.4: Método de Cortes de Gomory")
@@ -113,28 +112,35 @@ x_1, x_2, x_3 &\geq 0, \text{ enteros}
 """)
 
 if st.button("Resolver Ejercicio 8.4"):
-    # Coeficientes de la función objetivo
-    c_8_4 = [-4, -3, -3]
-    A_8_4 = [
-        [4, 2, 1],
-        [3, 4, 2],
-        [2, 1, 3]
-    ]
-    b_8_4 = [10, 14, 7]
+    # Definir el problema
+    prob_8_4 = LpProblem("Ejercicio_8_4", LpMaximize)
+    x1 = LpVariable("x1", lowBound=0, cat="Integer")
+    x2 = LpVariable("x2", lowBound=0, cat="Integer")
+    x3 = LpVariable("x3", lowBound=0, cat="Integer")
 
-    # Resolver la versión relajada
-    result_8_4 = linprog(c_8_4, A_ub=A_8_4, b_ub=b_8_4, bounds=(0, None), method="highs")
+    # Función objetivo
+    prob_8_4 += 4 * x1 + 3 * x2 + 3 * x3
+
+    # Restricciones
+    prob_8_4 += 4 * x1 + 2 * x2 + x3 <= 10
+    prob_8_4 += 3 * x1 + 4 * x2 + 2 * x3 <= 14
+    prob_8_4 += 2 * x1 + x2 + 3 * x3 <= 7
+
+    # Resolver el problema
+    prob_8_4.solve()
     st.write("*Solución relajada del ejercicio 8.4:*")
-    st.write(f"x1 = {result_8_4.x[0]:.2f}, x2 = {result_8_4.x[1]:.2f}, x3 = {result_8_4.x[2]:.2f}")
-    st.write(f"Valor de la función objetivo: P = {-result_8_4.fun:.2f}")
+    st.write(f"x1 = {x1.varValue}, x2 = {x2.varValue}, x3 = {x3.varValue}")
+    st.write(f"Valor de la función objetivo: P = {prob_8_4.objective.value()}")
 
 # --- Ejercicio 8.5 ---
 st.header("Ejercicio 8.5: Selección de Proyectos de I+D")
 st.write("Maximizar el NPV sujeto a las restricciones de presupuesto para cada año.")
 
 if st.button("Resolver Ejercicio 8.5"):
-    # Coeficientes de la función objetivo (NPV de cada proyecto)
-    npv_coefficients = [-141, -187, -121, -85, -262, -127]
+    # Definir el problema
+    prob_8_5 = LpProblem("Ejercicio_8_5", LpMaximize)
+    projects = ["P1", "P2", "P3", "P4", "P5", "P6"]
+    npv_values = [141, 187, 121, 85, 262, 127]
     capital_requirements = [
         [75, 90, 60, 85, 100, 50],
         [25, 35, 15, 25, 30, 20],
@@ -144,13 +150,20 @@ if st.button("Resolver Ejercicio 8.5"):
     ]
     budgets = [250, 75, 50, 50, 50]
 
-    # Resolver el problema de selección de proyectos
-    result_8_5 = linprog(npv_coefficients, A_ub=capital_requirements, b_ub=budgets, bounds=(0, 1), method="highs")
-    selected_projects = result_8_5.x
-    total_npv = -result_8_5.fun
+    # Variables binarias para seleccionar proyectos
+    decision_vars = {project: LpVariable(project, cat="Binary") for project in projects}
 
+    # Función objetivo
+    prob_8_5 += lpSum([npv_values[i] * decision_vars[projects[i]] for i in range(len(projects))])
+
+    # Restricciones de presupuesto por año
+    for i in range(len(budgets)):
+        prob_8_5 += lpSum([capital_requirements[i][j] * decision_vars[projects[j]] for j in range(len(projects))]) <= budgets[i]
+
+    # Resolver el problema
+    prob_8_5.solve()
     st.write("*Proyectos seleccionados:*")
-    for i, selected in enumerate(selected_projects, start=1):
-        st.write(f"Proyecto {i}: {'Seleccionado' if selected >= 0.5 else 'No seleccionado'}")
+    for project in projects:
+        st.write(f"{project}: {'Seleccionado' if decision_vars[project].varValue == 1 else 'No seleccionado'}")
 
-    st.write(f"**Valor total de NPV:** {total_npv:.2f}")
+    st.write(f"**Valor total de NPV:** {prob_8_5.objective.value()}")
